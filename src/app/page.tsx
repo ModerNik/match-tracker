@@ -1,101 +1,88 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiMatches } from "@/api/services/matches";
+import { LoaderIcon, RefreshCwIcon } from "lucide-react";
+import { Fragment } from "react";
+import { Match, MatchStatus } from "@/api/types/matches";
+
+export default function HomePage() {
+  const matchesData = useQuery({
+    queryKey: ["matches"],
+    queryFn: apiMatches.getMatches,
+  });
+
+  // I used TanStack Query instead of SWR or React-Query, hope this is acceptable.
+  const queryClient = useQueryClient();
+  function refreshData() {
+    queryClient.invalidateQueries({ queryKey: ["matches"] });
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex flex-col gap-5 p-[42px]">
+      <div className="flex justify-between">
+        <h1 className="text-[32px] font-bold italic">Match Tracker</h1>
+        <div className="flex gap-3">
+          {matchesData.isLoadingError && (
+            <div className="bg-card flex items-center justify-center gap-2.5 rounded-sm px-6">
+              <img src="/images/icons/error.svg" alt="error" />
+              <p>Ошибка: не удалось загрузить информацию</p>
+            </div>
+          )}
+          <button
+            onClick={refreshData}
+            className="bg-warning active:bg-button-pressed flex h-14 w-[204px] cursor-pointer items-center justify-center gap-2.5 rounded-sm p-4 font-semibold transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <p>Обновить</p>
+            <RefreshCwIcon />
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </div>
+      {matchesData.isLoading && (
+        <div className="flex w-full items-center justify-center">
+          <LoaderIcon />
+        </div>
+      )}
+      {matchesData.isSuccess && (
+        <div className="flex flex-col gap-3">
+          {matchesData.data.data.data.matches.map((match, matchIndex) => (
+            <MatchCard match={match} key={`match-${matchIndex}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MatchCard({ match }: { match: Match }) {
+  const statusColor = new Map<MatchStatus, string>([
+    ["Scheduled", "bg-info"],
+    ["Ongoing", "bg-success"],
+    ["Finished", "bg-warning"],
+  ]);
+
+  return (
+    <div className="bg-card flex items-center justify-between rounded-sm p-4">
+      <div className="flex items-center gap-[14px]">
+        <img src="/images/icons/crown.svg" />
+        <p className="font-semibold">{match.awayTeam.name}</p>
+      </div>
+
+      <div className="flex w-[92px] flex-col gap-1 text-center font-bold">
+        <p className="text-xl">
+          {match.awayScore} : {match.homeScore}
+        </p>
+        <div
+          className={`${statusColor.get(match.status)} w-full rounded-sm px-[2px] py-[6px] text-xs`}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {match.status}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-[14px]">
+        <img src="/images/icons/crown.svg" />
+        <p className="font-semibold">{match.homeTeam.name}</p>
+      </div>
     </div>
   );
 }
