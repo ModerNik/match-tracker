@@ -3,7 +3,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiMatches } from "@/api/services/matches";
 import { LoaderIcon, RefreshCwIcon } from "lucide-react";
-import { Fragment } from "react";
 import { Match, MatchStatus } from "@/api/types/matches";
 
 export default function HomePage() {
