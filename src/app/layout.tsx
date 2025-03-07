@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${font.variable} antialiased`}>
+      <body className={`${font.variable} antialiased min-h-screen`}>
         <Provider>{children}</Provider>
       </body>
     </html>
