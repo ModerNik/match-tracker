@@ -37,9 +37,9 @@ type Team = {
   total_kills: number;
 };
 
-type MatchStatus = "Scheduled" | "Ongoing" | "Finished";
+export type MatchStatus = "Scheduled" | "Ongoing" | "Finished";
 
-type Match = {
+export type Match = {
   /**
    * Время проведения матча
    */
